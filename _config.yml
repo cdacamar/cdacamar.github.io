@@ -30,7 +30,7 @@ comments:
     colorscheme          : # "light" (default), "dark"
 
 # SEO Related
-google_site_verification :
+google_site_verification : "UA-80836514-1"
 bing_site_verification   :
 alexa_site_verification  :
 yandex_site_verification :
@@ -52,9 +52,9 @@ social:
 
 # Analytics
 analytics:
-  provider               : false # false (default), "google", "google-universal", "custom"
+  provider               : "google" # false (default), "google", "google-universal", "custom"
   google:
-    tracking_id          :
+    tracking_id          : "UA-80836514-1"
 
 # Google AdSense
 google_ad_client         :
