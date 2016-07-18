@@ -20,7 +20,7 @@ So what can you expect here? In a word, `code`. Lots of code! Why? A couple of r
 1.  I am a very visual person, I learned (and continue to learn) through example. When I see results I want to
     know how we got there. Understanding results is a small part of a long and convoluted battle in converting
     and handling data. My personal interest lies in that conversion.
-2. Most of us my know of an interesting quote,
+2. Most of us may know of an interesting quote,
 
     > "Show me your flowchart and conceal your tables, and I shall continue to be mystified. Show me your tables,
     > and I won't usually need your flowchart; it'll be obvious."
