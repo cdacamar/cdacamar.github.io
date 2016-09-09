@@ -60,9 +60,9 @@ constexpr common_type visit(Visitor&& vis, Variants&&... vars);
 There are a couple of things to notice about `std::visit`
 
 1. We accept a single visitor for multiple variant types and,
-2. variants don't need to contain homogeneous across them.
+2. variants don't need to contain homogeneous types across them.
 
-Because of these properties our visitor solves the [multi-method problem](https://en.wikipedia.org/wiki/Multiple_dispatch), pre-canned in the STL!
+Because of these properties our visitor provides a good solution to the [multi-method problem](https://en.wikipedia.org/wiki/Multiple_dispatch), pre-canned in the STL!
 
 Let's see a simple use case for `std::visit`:
 
