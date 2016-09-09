@@ -121,6 +121,7 @@ What are the goals of variants?  One could argue some goals behind variants are 
 This last aspect is easy to solve with a small library that is meant to compose lambda objects into a single, `operator()` overloaded object.  Let's see what `print_variant` looks like after this transformation:
 
 <figure class="lineno-container">
+
 {% highlight cpp linenos %}
 #include <iostream>
 #include <string>
@@ -151,6 +152,7 @@ int main() {
   print_variant(v);
 }
 {% endhighlight %}
+
 </figure>
 
 With this transformation the reader has all of the necessary code for the behaviour in the function itself.  Maintainers will truly appreciate a compact function like this.
@@ -158,6 +160,7 @@ With this transformation the reader has all of the necessary code for the behavi
 Just to show this composer doesn't do any extra work outside of template metaprogramming, let's see one more example:
 
 <figure class="lineno-container">
+
 {% highlight cpp linenos %}
 int main() {
   std::variant<int, const char*, double> v;
@@ -165,16 +168,19 @@ int main() {
   return std::visit(lambda_util::compose([](double) { return 0; }, [](const char*) { return 1; }, [](auto) { return 2; }), v);
 }
 {% endhighlight %}
+
 </figure>
 
 The compiler I was using was `GCC 7 (snapshot)` with `-O2 -std=c++1z`.  Here is its output:
 
 <figure class="lineno-container">
+
 {% highlight nasm linenos %}
 main:
   xorl  %eax, %eax
   ret
 {% endhighlight %}
+
 </figure>
 
 This anecdote speaks to 3 things, the amout of `std::variant` that is `constexpr` compatible, the `lambda_util::compose` lightweight functionality, and the fine folks on the GNU GCC team and the excellent work they do with their optimizer <i class='fa fa-smile-o' />
