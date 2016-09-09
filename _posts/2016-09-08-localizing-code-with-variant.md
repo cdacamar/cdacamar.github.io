@@ -27,8 +27,7 @@ Variant types are useful for all types of applications, particularly when you wa
 
 Let's see a simple use case for `std::variant`:
 
-<figure class="lineno-container">
-{% highlight cpp linenos %}
+```cpp
 #include <iostream>
 #include <string>
 #include <variant>
@@ -45,8 +44,7 @@ int main() {
   v = 42;
   std::cout<<"Meaning of life: "<<std::get<int>(v)<<'\n';
 }
-{% endhighlight %}
-</figure>
+```
 
 As contrived as this example may be it shows how flexable `std::variant` can be.  It allows us to bind several types together that can have semantic meaning within our application without the types poisoning each other with interface requirements and let's us treat the base class, `std::variant` in this case, as a value type.
 
@@ -68,8 +66,7 @@ Because of these properties our visitor solves the [multi-method problem](https:
 
 Let's see a simple use case for `std::visit`:
 
-<figure class="lineno-container">
-{% highlight cpp linenos %}
+```cpp
 #include <iostream>
 #include <string>
 #include <variant>
@@ -95,8 +92,7 @@ int main() {
   v = 42;
   print_variant(v);
 }
-{% endhighlight %}
-</figure>
+```
 
 As great as this is, do you see a problem?  The problem that I see is that, while a visitor object _can_ be locally declared, if we want to handle generic cases we have two options.
 
@@ -120,9 +116,7 @@ What are the goals of variants?  One could argue some goals behind variants are 
 
 This last aspect is easy to solve with a small library that is meant to compose lambda objects into a single, `operator()` overloaded object.  Let's see what `print_variant` looks like after this transformation:
 
-<figure class="lineno-container">
-
-{% highlight cpp linenos %}
+```cpp
 #include <iostream>
 #include <string>
 #include <variant>
@@ -151,37 +145,27 @@ int main() {
   v = 42;
   print_variant(v);
 }
-{% endhighlight %}
-
-</figure>
+```
 
 With this transformation the reader has all of the necessary code for the behaviour in the function itself.  Maintainers will truly appreciate a compact function like this.
 
 Just to show this composer doesn't do any extra work outside of template metaprogramming, let's see one more example:
 
-<figure class="lineno-container">
-
-{% highlight cpp linenos %}
+```cpp
 int main() {
   std::variant<int, const char*, double> v;
   v = 10.5;
   return std::visit(lambda_util::compose([](double) { return 0; }, [](const char*) { return 1; }, [](auto) { return 2; }), v);
 }
-{% endhighlight %}
-
-</figure>
+```
 
 The compiler I was using was `GCC 7 (snapshot)` with `-O2 -std=c++1z`.  Here is its output:
 
-<figure class="lineno-container">
-
-{% highlight nasm linenos %}
+```nasm
 main:
   xorl  %eax, %eax
   ret
-{% endhighlight %}
-
-</figure>
+```
 
 This anecdote speaks to 3 things, the amout of `std::variant` that is `constexpr` compatible, the `lambda_util::compose` lightweight functionality, and the fine folks on the GNU GCC team and the excellent work they do with their optimizer <i class='fa fa-smile-o' />
 
