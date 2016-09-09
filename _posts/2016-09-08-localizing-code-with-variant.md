@@ -155,7 +155,12 @@ Just to show this composer doesn't do any extra work outside of template metapro
 int main() {
   std::variant<int, const char*, double> v;
   v = 10.5;
-  return std::visit(lambda_util::compose([](double) { return 0; }, [](const char*) { return 1; }, [](auto) { return 2; }), v);
+  return std::visit(
+      lambda_util::compose(
+        [](double)      { return 0; },
+        [](const char*) { return 1; },
+        [](auto)        { return 2; }),
+      v);
 }
 ```
 
