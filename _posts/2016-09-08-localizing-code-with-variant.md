@@ -12,7 +12,7 @@ modified: 2016-09-08
 
 {% include base_path %}
 
-As we all know, C++17 is on the horizon.  With it's release will comes a new member to data container family, `std::variant`.
+As we all know, C++17 is on the horizon.  With it's release will comes a new member to the data container family, `std::variant`.
 
 ## Looking at `std::variant`
 
