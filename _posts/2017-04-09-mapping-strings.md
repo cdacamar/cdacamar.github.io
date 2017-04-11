@@ -114,8 +114,8 @@ For this test I generated random strings all between the lengths of 10 and 100 s
 
 So... That's less than helpful.  At around 1,000,000 elements our unsorted vector takes around 32 minutes to lookup a string.
 
-Let's fix this.  A easy way to get our `std::vector` implementation in-line with the rest of the containers we can sort it and utilize an algorithm,
-`std::lower_bound` in order to speed up our lookup times.
+Let's fix this.  An easy way to get our `std::vector` implementation in-line with the rest of the containers is we can sort it and utilize an algorithm,
+`std::lower_bound`, in order to speed up our lookup times.
 
 Lets see how that change affects the benchmark:
 
@@ -130,8 +130,10 @@ If you think about the problem we're actually solving here you could actually re
 In our problem we have a finite set of things that a string could match to.  With that in mind we can short cut a lot of the matching process if we
 manage to find a string with a certain prefix.
 
-For example, in the list of strings `["cat", "cake", "bat"]` if we have the prefix `"ca"` then we have two potential matches, `"cat"` and `"bat"`,
-however if we have a prefix of `"b"` then we don't even have to compare the rest of the string to `"bat"` to have a full match, we can just take `"bat"`.
+For example, in the list of strings `["cat", "cake", "bat"]` if we have the prefix `"ca"` then we have two potential matches, `"cat"` and `"cake"`,
+however if we have a prefix of just `"b"` then we don't even have to compare the rest of the string to `"bat"` to have a full match, we can just take `"bat"`.
+This, of course, is all under the assumption you can short circuit like that in your string match.  It's possible you have malformed type strings.  Keep this
+in mind when considering the following solution!
 
 Luckily there is a data structure that will do just this type of prefix matching. A _Trie_.
 
@@ -154,16 +156,16 @@ Lets see how this implementation might compare to our existing benchmarks:
 ![](/images/impl1-lookup-chart.png)
 
 OK, so with the naïve implementation we don't even beat `std::map`.  This is unsurprising because it uses `std::map` under the covers to maintain the
-Trie invariant of being sorted.  Because of the assumption that we want to maintain the Trie is sorted invariant (or that it can return sorted lists
-of words), we won't bother using `std::unordered_map` to implement the node behavior.
+Trie invariant of being sorted.  We want to maintain that the Trie is sorted so we can return sorted lists
+of words, so we won't bother using `std::unordered_map` to implement the node behavior.
 
 ## Improving Trie
 
 All this said, there is a lot of room for improvement.  Mainly in the way we store words that are leaves.  If you'll notice, whenever we created the
-subtree for `"bake"` we added an extra node that didn't even exist.  This problem is exacerbated when we have very long words with no common prefixes
-with other words in the tree.
+subtree for `"bake"` we added an extra branch node between where the leaf and the end of the word.  This problem is exacerbated when we have very long
+words with no common prefixes with other words in the tree.
 
-Conceptually the tree has two different types of nodes: leaf nodes and branch nodes.  Leaf nodes are those that only contain the full words and branch
+In essence the tree has two different types of nodes: leaf nodes and branch nodes.  Leaf nodes are those that only contain the full words and branch
 nodes have child nodes that are either leaves or more branches.  Here, I chose inheritance to do the trick for me:
 
 ```cpp
