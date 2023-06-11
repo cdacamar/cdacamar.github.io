@@ -142,7 +142,7 @@ struct UndoRedoData
 };
 ```
 
-but is overly complicated and requires, potentially, large allocation overheads when deleting large portions of text.  There must be a better way...
+but is overly complicated and requires potentially large allocation overheads when deleting large portions of text.  There must be a better way...
 
 ## Investigation
 
@@ -151,24 +151,24 @@ I knew I wanted to solve all the problems that having a single giant text buffer
 1. Efficient insertion/deletion.
 2. Efficient undo/redo.
 3. Must be flexible enough to enable UTF-8 encoding.
-4. Efficient block-style editing.
+4. Efficient multi-cursor editing.
 
 ### Gap buffer
 
-I initially started going down the path of a [gap buffer](https://en.wikipedia.org/wiki/Gap_buffer).  The gap buffer is very simple to implement and [Emacs famously uses a gap buffer](https://www.gnu.org/software/emacs/manual/html_node/elisp/Buffer-Gap.html) as its data structure.  A gap buffer would address the first point quite well for isolated edits.  It's not very common that I am editing all over the file all at once, is it?  Well... Not quite.  One of my favorite (perhaps gimmicky) features of modern text editors is a block-style edit (sometimes called multiple cursor edits) and after reading ["Gap Buffers Are Not Optimized for Multiple Cursors"](https://nullprogram.com/blog/2017/09/07/) (which, btw, has one of the best animations I've ever seen to describe a gap buffer in action) Chris Wellons thoroughly convinced me that gap buffers are the wrong way to go because block-style edits are important to _me_.
+I initially started going down the path of a [gap buffer](https://en.wikipedia.org/wiki/Gap_buffer).  The gap buffer is very simple to implement and [Emacs famously uses a gap buffer](https://www.gnu.org/software/emacs/manual/html_node/elisp/Buffer-Gap.html) as its data structure.  A gap buffer would address the first point quite well for isolated edits.  It's not very common that I am editing all over the file all at once, is it?  Well... Not quite.  One of my favorite (perhaps gimmicky) features of modern text editors is multi-cursor editing (sometimes called block-style edits, though block-style editing is slightly different) and after reading ["Gap Buffers Are Not Optimized for Multiple Cursors"](https://nullprogram.com/blog/2017/09/07/) (which, btw, has one of the best animations I've ever seen to describe a gap buffer in action) Chris Wellons thoroughly convinced me that gap buffers are the wrong way to go because multi-cursor edits are important to _me_.
 
 Gap buffers are also plagued with similar problems as the giant string representation where efficient undo/redo is difficult without lots of extra storage/data structures.
 
 1. <i class='fa fa-check' /> Efficient insertion/deletion.
 2. <i class='fa fa-close' /> Efficient undo/redo.
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
-4. <i class='fa fa-close' /> Efficient block-style editing.
+4. <i class='fa fa-close' /> Efficient multi-cursor editing.
 
 Gap buffer is out.
 
 ### Rope
 
-A [rope](https://en.wikipedia.org/wiki/Rope_(data_structure)) can be a very attractive data structure for text editors.  A rope has a lot of nice properties for editing in particular because it splits the file up into several smaller allocations which allow for very fast amortized insertions or deletions at any point in the file, _O(lg n)_.  At first glance, it would seem that a rope addresses all of my initial concerns because operations like undo/redo can more easily be implemented in terms of a tree snapshot (or retaining the removed or changed nodes) and block-style editing becomes a much more lightweight operation.
+A [rope](https://en.wikipedia.org/wiki/Rope_(data_structure)) can be a very attractive data structure for text editors.  A rope has a lot of nice properties for editing in particular because it splits the file up into several smaller allocations which allow for very fast amortized insertions or deletions at any point in the file, _O(lg n)_.  At first glance, it would seem that a rope addresses all of my initial concerns because operations like undo/redo can more easily be implemented in terms of a tree snapshot (or retaining the removed or changed nodes) and multi-cursor editing becomes a much more lightweight operation.
 
 So where's the catch?  Let's revisit undo/redo for a moment.
 
@@ -189,7 +189,7 @@ For the purposes of my editor, I want something a bit more lightweight.
 1. <i class='fa fa-check' /> Efficient insertion/deletion.
 2. <i class='fa fa-close' /> Efficient undo/redo.
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
-4. <i class='fa fa-check' /> Efficient block-style editing.
+4. <i class='fa fa-check' /> Efficient multi-cursor editing.
 
 ### Piece Table
 
@@ -200,7 +200,7 @@ There is one, perhaps, slight drawback.  Due to the fact that the traditional pi
 1. <i class='fa fa-check' /> Efficient insertion/deletion (minus very log edit sessions).
 2. <i class='fa fa-check' /> Efficient undo/redo (minus very long edit sessions).
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
-4. <i class='fa fa-check' /> Efficient block-style editing.
+4. <i class='fa fa-check' /> Efficient multi-cursor editing.
 
 Then, the VSCode team went and solved the problem.  Enter [piece tree](https://code.visualstudio.com/blogs/2018/03/23/text-buffer-reimplementation)...
 
@@ -208,18 +208,20 @@ Then, the VSCode team went and solved the problem.  Enter [piece tree](https://c
 
 I do not want to rehash everything that was covered in the original VSCode blog about their text buffer reimplementation, but I do want to cover why this particular version of a piece table is so interesting and what I needed to change to fill the gaps.
 
-The piece table that VSCode implemented is like if the traditional piece table and a rope data structure had a baby and that baby went on to out class its parents in every conceivable way.  You get all of the beauty of rope-like insertion amortization cost with the memory compression of a piece table.  There was just one tiny piece missing... the VSCode implementation does not use immutable data structures, which means that I will need to copy the entire piece tree (not the underlying data of course) in order to capture undo/redo stacks.  So it does have _some_ of the drawback of the piece table, so let's just fix it!  How hard could it be?  (spoilers: it was hard).
+The piece table that VSCode implemented is like if the traditional piece table and a rope data structure had a baby and that baby went on to out class its parents in every conceivable way.  You get all of the beauty of rope-like insertion amortization cost with the memory compression of a piece table.  The piece tree achieves the fast and compressed insertion times through the use of a [red-black tree (RB tree)](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree) to store the individual pieces.  This data structure is useful because its guarantees about being a balanced search tree allow it to maintain a _O(lg n)_ search time no matter how many pieces are added over time.
+
+There was just one tiny piece missing... the VSCode implementation does not use immutable data structures, which means that I will need to copy the entire piece tree (not the underlying data of course) in order to capture undo/redo stacks.  So it does have _some_ of the drawback of the piece table, so let's just fix it!  How hard could it be?  (spoilers: it was hard).
 
 1. <i class='fa fa-check' /> Efficient insertion/deletion.
 2. <i class='fa fa-check' /> Efficient undo/redo (almost, a tree copy is involved).
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
-4. <i class='fa fa-check' /> Efficient block-style editing.
+4. <i class='fa fa-check' /> Efficient multi-cursor editing.
 
 ## My Own Piece Tree
 
 The primary goal for implementing my own piece tree was to make it a purely functional data structure, which means the underlying view of the text should be entirely immutable and changing it would require a new partial tree.
 
-The piece tree that VSCode implemented uses a traditional [red-black tree (RB tree)](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree).  After digging out my copy of [Introduction to Algorithms](https://www.amazon.com/Introduction-Algorithms-3rd-MIT-Press/dp/0262033844) book again I quickly realized that trying to reimplement the RB tree described in the book as a purely functional variant was not going to be easy for two reasons:
+The piece tree that VSCode implemented uses a traditional RB tree.  After digging out my copy of [Introduction to Algorithms](https://www.amazon.com/Introduction-Algorithms-3rd-MIT-Press/dp/0262033844) book again I quickly realized that trying to reimplement the RB tree described in the book as a purely functional variant was not going to be easy for two reasons:
 
 1. The book makes heavy use of a sentinel node which represents the NIL node but it can be mutated like a regular node, except there's only one.
 2. The algorithms in the book make heavy use of the parent pointer in each node.  Parent pointers in purely functional data structures are a no go because a change anywhere in the tree essentially invalidates the entire tree.
@@ -334,7 +336,7 @@ Finally, after implementing deletion I had my 'perfect' data structure (for me):
 1. <i class='fa fa-check' /> Efficient insertion/deletion.
 2. <i class='fa fa-check' /> Efficient undo/redo.
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
-4. <i class='fa fa-check' /> Efficient block-style editing.
+4. <i class='fa fa-check' /> Efficient multi-cursor editing.
 
 ## fredbuf
 
