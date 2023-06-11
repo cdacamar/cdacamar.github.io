@@ -38,10 +38,6 @@ yandex_site_verification :
 # Social Sharing
 twitter:
   username               : "starfreakclone"
-facebook:
-  username               : "cdacamara"
-  app_id                 :
-  publisher              :
 og_image                 : "logo-og.png" # Open Graph/Twitter default site image
 # For specifying social profiles
 # - https://developers.google.com/structured-data/customize/social-profiles
@@ -66,14 +62,13 @@ author:
   name             : "Cameron DaCamara"
   avatar           : "bio-photo.jpg"
   bio              : "\"Sometimes there's a man...  Sometimes there's a man...\""
-  location         : "College Station, TX"
+  location         : "Seattle, WA"
   email            :
   uri              :
   bitbucket        :
   codepen          :
   dribbble         :
   flickr           :
-  facebook         : "cdacamara"
   foursquare       :
   github           : "cdacamar"
   google_plus      :
@@ -90,7 +85,7 @@ author:
   vine             :
   weibo            :
   xing             :
-  youtube          :
+  youtube          : "starfreakclone"
 
 
 # Reading Files
