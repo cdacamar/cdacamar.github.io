@@ -197,7 +197,7 @@ Now things are getting interesting.  The [piece table](https://en.wikipedia.org/
 
 There is one, perhaps, slight drawback.  Due to the fact that the traditional piece table is implemented as a contiguous array of historical edits, it implies that long edit sessions could end up in a place where adding lots of small edits to the same file will cause some of the artifacts we saw with the giant text buffer start to appear, e.g. randomly your editor may slow down because the piece table is reallocated to a larger array.  Not only this, undo/redo stacks need to store this potentially large array of entries.
 
-1. <i class='fa fa-check' /> Efficient insertion/deletion (minus very log edit sessions).
+1. <i class='fa fa-check' /> Efficient insertion/deletion (minus very long edit sessions).
 2. <i class='fa fa-check' /> Efficient undo/redo (minus very long edit sessions).
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
 4. <i class='fa fa-check' /> Efficient multi-cursor editing.
