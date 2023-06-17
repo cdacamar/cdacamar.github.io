@@ -197,7 +197,7 @@ Now things are getting interesting.  The [piece table](https://en.wikipedia.org/
 
 There is one, perhaps, slight drawback.  Due to the fact that the traditional piece table is implemented as a contiguous array of historical edits, it implies that long edit sessions could end up in a place where adding lots of small edits to the same file will cause some of the artifacts we saw with the giant text buffer start to appear, e.g. randomly your editor may slow down because the piece table is reallocated to a larger array.  Not only this, undo/redo stacks need to store this potentially large array of entries.
 
-1. <i class='fa fa-check' /> Efficient insertion/deletion (minus very log edit sessions).
+1. <i class='fa fa-check' /> Efficient insertion/deletion (minus very long edit sessions).
 2. <i class='fa fa-check' /> Efficient undo/redo (minus very long edit sessions).
 3. <i class='fa fa-check' /> Must be flexible enough to enable UTF-8 encoding.
 4. <i class='fa fa-check' /> Efficient multi-cursor editing.
@@ -228,7 +228,7 @@ The piece tree that VSCode implemented uses a traditional RB tree.  After diggin
 1. The book makes heavy use of a sentinel node which represents the NIL node but it can be mutated like a regular node, except there's only one.
 2. The algorithms in the book make heavy use of the parent pointer in each node.  Parent pointers in purely functional data structures are a no go because a change anywhere in the tree essentially invalidates the entire tree.
 
-Somebody had to have implemented an immutable RB tree, right?  Turns out... yeah?  Kind of?  In my search I found [Functional Data Structures in C++: Trees](https://bartoszmilewski.com/2013/11/25/functional-data-structures-in-c-trees/) by Bartosz Milewski in which he covers a simple way to implement a purely functional RB tree, but only for insertion.  Insertion is is essential to have but I also need deletion, I have to have deletion otherwise the piece tree simply will not work.  In the comments it was discussed that deletion is hard, very hard, and that often you need a new node concept to even handle it.  I really liked the approach Milewski took for insertion, so I ended up starting my RB tree with this data structure and implemented the rest of the piece tree around it, minus delete but we'll get to that later.
+Somebody had to have implemented an immutable RB tree, right?  Turns out... yeah?  Kind of?  In my search I found [Functional Data Structures in C++: Trees](https://bartoszmilewski.com/2013/11/25/functional-data-structures-in-c-trees/) by Bartosz Milewski in which he covers a simple way to implement a purely functional RB tree, but only for insertion.  Insertion is essential to have but I also need deletion, I have to have deletion otherwise the piece tree simply will not work.  In the comments it was discussed that deletion is hard, very hard, and that often you need a new node concept to even handle it.  I really liked the approach Milewski took for insertion, so I ended up starting my RB tree with this data structure and implemented the rest of the piece tree around it, minus delete but we'll get to that later.
 
 ### Where I Diverge
 
